@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/cycle_provider.dart';
+import '../services/update_service.dart';
 import 'cycle_editor_screen.dart';
 import 'history_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.performCheck(context, isManual: false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +98,41 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(width: 8),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded),
+            color: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            onSelected: (val) {
+              if (val == 'update') {
+                UpdateService.performCheck(context, isManual: true);
+              } else if (val == 'about') {
+                _showAboutModal(context);
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'update',
+                child: Row(
+                  children: [
+                    Icon(Icons.system_update_alt_rounded, color: Color(0xFF38BDF8), size: 18),
+                    SizedBox(width: 10),
+                    Text('检查更新', style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'about',
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Color(0xFF94A3B8), size: 18),
+                    SizedBox(width: 10),
+                    Text('关于应用', style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: RefreshIndicator(
@@ -557,6 +606,109 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAboutModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/logos/logo_4_dial_plate.png',
+                  width: 72,
+                  height: 72,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.fitness_center_rounded,
+                    size: 64,
+                    color: Color(0xFF10B981),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '练啥 · FitCycle',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                '当前版本 v${UpdateService.currentVersion}',
+                style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '专为健身爱好者打造的滚动分化（Rolling Split）极简看板',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Color(0xFFCBD5E1)),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF334155)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        UpdateService.performCheck(context, isManual: true);
+                      },
+                      icon: const Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF38BDF8)),
+                      label: const Text('检查更新', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F172A),
+                        side: const BorderSide(color: Color(0xFF334155)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        final uri = Uri.parse('https://github.com/Lzh3070/fit-cycle');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.code_rounded, size: 18, color: Colors.white),
+                      label: const Text('GitHub', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 }

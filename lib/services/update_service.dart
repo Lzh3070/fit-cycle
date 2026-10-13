@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/app_toast.dart';
 
 class UpdateInfo {
   final String version;
@@ -22,9 +23,24 @@ class UpdateInfo {
 }
 
 class UpdateService {
-  static const String currentVersion = '1.0.1';
+  static const String currentVersion = '1.0.2';
   static const String repoOwner = 'Lzh3070';
   static const String repoName = 'fit-cycle';
+
+  static Future<void> openExternalUrl(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint('Launch URL error: $e');
+      if (context.mounted) {
+        AppToast.error(context, '无法打开浏览器链接，请检查浏览器');
+      }
+    }
+  }
 
   static Future<UpdateInfo?> checkUpdate() async {
     final client = HttpClient();
@@ -97,12 +113,7 @@ class UpdateService {
 
   static Future<void> performCheck(BuildContext context, {bool isManual = true}) async {
     if (isManual) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🔍 正在检查最新版本...'),
-          duration: Duration(milliseconds: 1500),
-        ),
-      );
+      AppToast.info(context, '正在检查最新版本...');
     }
 
     try {
@@ -113,23 +124,13 @@ class UpdateService {
         showUpdateDialog(context, updateInfo);
       } else {
         if (isManual) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('🎉 当前已是最新版本 (v$currentVersion)'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          AppToast.success(context, '当前已是最新版本 (v$currentVersion)');
         }
       }
     } catch (e) {
       if (!context.mounted) return;
       if (isManual) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⚠️ 检查更新失败：网络连接异常，建议稍后重试'),
-            duration: Duration(seconds: 3),
-          ),
-        );
+        AppToast.error(context, '检查更新失败：网络连接异常，建议稍后重试');
       }
     }
   }
@@ -207,10 +208,7 @@ class UpdateService {
               ),
               onPressed: () async {
                 Navigator.pop(ctx);
-                final uri = Uri.parse(updateInfo.downloadUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
+                await openExternalUrl(context, updateInfo.downloadUrl);
               },
               child: const Text('下载更新 🚀', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),

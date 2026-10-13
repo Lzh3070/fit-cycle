@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/cycle_model.dart';
 import '../providers/cycle_provider.dart';
+import '../utils/app_toast.dart';
 
 class CycleEditorScreen extends StatefulWidget {
   final bool isInitialSetup;
@@ -88,9 +89,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
 
   void _removeDay(int index) {
     if (_dayDrafts.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('至少需要保留 1 天计划哦')),
-      );
+      AppToast.warning(context, '至少需要保留 1 天计划哦');
       return;
     }
     setState(() {
@@ -116,9 +115,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
         ));
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已导入模版「$name」，你可以随意修改每一天')),
-    );
+    AppToast.success(context, '已导入模版「$name」，可自由修改');
   }
 
   void _save() {
@@ -126,9 +123,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
 
     for (int i = 0; i < _dayDrafts.length; i++) {
       if (_dayDrafts[i].titleController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('第 ${i + 1} 天的内容还没有填写')),
-        );
+        AppToast.warning(context, '第 ${i + 1} 天的内容还没有填写');
         return;
       }
     }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/cycle_provider.dart';
 import '../services/update_service.dart';
+import '../utils/app_toast.dart';
 import 'cycle_editor_screen.dart';
 import 'history_screen.dart';
 
@@ -158,12 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () {
                     final nextVal = !cycle.autoAdvance;
                     provider.toggleAutoAdvance(nextVal);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(nextVal ? '已开启「次日 0 点自动轮转」' : '已切换为「手动打卡轮转」'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
+                    AppToast.info(context, nextVal ? '已开启「次日 0 点自动轮转」' : '已切换为「手动打卡轮转」');
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -321,12 +316,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: ElevatedButton.icon(
                         onPressed: () {
                           provider.completeToday();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('🎉 打卡成功！循环已推进至下一天，桌面小组件已同步刷新。'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
+                          AppToast.success(context, '打卡成功！已推进至下一天');
                         },
                         icon: const Icon(Icons.check, color: Colors.white),
                         label: const Text(
@@ -346,12 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () {
                           provider.postponeDay();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('⏳ 已顺延！今天的计划已推迟至明天，即使开启自动轮转，明天也仍会保留当前计划。'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
+                          AppToast.warning(context, '已顺延！今天的计划已推迟至明天');
                         },
                         icon: const Icon(Icons.more_time, color: Color(0xFF94A3B8), size: 18),
                         label: const Text(
@@ -691,12 +676,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.pop(ctx);
-                        final uri = Uri.parse('https://github.com/Lzh3070/fit-cycle');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
+                        UpdateService.openExternalUrl(context, 'https://github.com/Lzh3070/fit-cycle');
                       },
                       icon: const Icon(Icons.code_rounded, size: 18, color: Colors.white),
                       label: const Text('GitHub', style: TextStyle(color: Colors.white)),

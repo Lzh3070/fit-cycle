@@ -23,9 +23,10 @@ class UpdateInfo {
 }
 
 class UpdateService {
-  static const String currentVersion = '1.0.2';
+  static const String currentVersion = '1.0.3';
   static const String repoOwner = 'Lzh3070';
   static const String repoName = 'fit-cycle';
+  static bool enableNetworkCheck = true;
 
   static Future<void> openExternalUrl(BuildContext context, String url) async {
     try {
@@ -112,6 +113,7 @@ class UpdateService {
   }
 
   static Future<void> performCheck(BuildContext context, {bool isManual = true}) async {
+    if (!enableNetworkCheck) return;
     if (isManual) {
       AppToast.info(context, '正在检查最新版本...');
     }
@@ -210,7 +212,14 @@ class UpdateService {
                 Navigator.pop(ctx);
                 await openExternalUrl(context, updateInfo.downloadUrl);
               },
-              child: const Text('下载更新 🚀', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.download_rounded, size: 16, color: Colors.white),
+                  SizedBox(width: 6),
+                  Text('立即更新', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+                ],
+              ),
             ),
           ],
         );

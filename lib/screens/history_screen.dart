@@ -46,8 +46,8 @@ class HistoryScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: record.isRest
-                          ? const Color(0xFF6366F1).withOpacity(0.3)
-                          : const Color(0xFF10B981).withOpacity(0.3),
+                          ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+                          : const Color(0xFF10B981).withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(

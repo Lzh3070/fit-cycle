@@ -27,7 +27,7 @@ class WidgetService {
         final dayTitle = current?.title ?? '未命名';
         final progress = 'Day ${cycle.currentIndex + 1}/${cycle.days.length}';
         final nextTitle = '下轮: ${next?.title ?? "--"}';
-        final status = isCompleted ? '已打卡 ✓' : '待打卡';
+        final status = isCompleted ? '今日已完成' : '待打卡';
 
         final titlesJoined = cycle.days.map((d) => d.title).join(';;;');
         final isRestJoined = cycle.days.map((d) => d.isRest ? '1' : '0').join(';;;');

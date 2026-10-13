@@ -391,7 +391,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: draft.isRest
-                        ? const Color(0xFF6366F1).withOpacity(0.5)
+                        ? const Color(0xFF6366F1).withValues(alpha: 0.5)
                         : const Color(0xFF334155),
                   ),
                 ),
@@ -420,7 +420,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            draft.isRest ? '恢复休息日 😴' : '训练日 💪',
+                            draft.isRest ? '恢复休息日' : '训练日',
                             style: TextStyle(
                               fontSize: 13,
                               color: draft.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF94A3B8),
@@ -522,16 +522,36 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
               onPressed: _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 4,
               ),
-              child: Text(
-                widget.isInitialSetup ? '完成设置并开启循环 🚀' : '保存修改 🚀',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.isInitialSetup ? '完成设置 · 开启循环' : '保存修改计划',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
 

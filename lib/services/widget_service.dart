@@ -39,6 +39,7 @@ class WidgetService {
         await HomeWidget.saveWidgetData<String>('status_text', status);
         await HomeWidget.saveWidgetData<bool>('is_rest', current?.isRest ?? false);
         await HomeWidget.saveWidgetData<bool>('is_completed', isCompleted);
+        await HomeWidget.saveWidgetData<String>('last_completed_date', cycle.lastCompletedDate ?? '');
 
         // 存储次日 0 点本地自动计算所需锚点（支持顺延后锚点后移）
         final anchorDate = cycle.lastActiveDate ?? todayStr;

@@ -23,7 +23,7 @@ class UpdateInfo {
 }
 
 class UpdateService {
-  static const String currentVersion = '1.0.3';
+  static const String currentVersion = '1.0.4';
   static const String repoOwner = 'Lzh3070';
   static const String repoName = 'fit-cycle';
   static bool enableNetworkCheck = true;

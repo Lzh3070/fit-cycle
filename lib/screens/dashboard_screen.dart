@@ -270,7 +270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                isCompleted ? '今日已打卡' : '待完成',
+                                isCompleted ? '今日已练完' : '待完成',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -298,7 +298,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           child: Text(
-                            currentDay.isRest ? 'REST & RECOVERY' : 'TODAY\'S TARGET',
+                            currentDay.isRest
+                                ? 'REST & RECOVERY'
+                                : (isCompleted ? 'COMPLETED · 今日已练完' : 'TODAY\'S TARGET'),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -309,7 +311,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          currentDay.isRest ? '恢复休整' : '重点强化',
+                          currentDay.isRest
+                              ? '恢复休整'
+                              : (isCompleted ? '已达成' : '重点强化'),
                           style: TextStyle(
                             fontSize: 12,
                             color: currentDay.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF94A3B8),
@@ -350,7 +354,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             provider.completeToday();
-                            AppToast.success(context, '打卡成功！已推进至下一天');
+                            AppToast.success(context, '今日打卡成功！已记录完成');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF10B981),
@@ -362,7 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
-                                '完成今日打卡 · 推进下一轮',
+                                '完成今日打卡',
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                               ),
                               const SizedBox(width: 12),
@@ -372,7 +376,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   color: Colors.white.withValues(alpha: 0.2),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
+                                child: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
                               ),
                             ],
                           ),
@@ -399,38 +403,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     ] else ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              alignment: Alignment.center,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.28),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                                ),
+                                color: const Color(0xFF10B981).withValues(alpha: 0.22),
+                                shape: BoxShape.circle,
                               ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              child: const Icon(Icons.check_rounded, size: 18, color: Color(0xFF34D399)),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.check_circle_rounded, size: 18, color: Color(0xFF34D399)),
-                                  SizedBox(width: 8),
+                                  const Text(
+                                    '今日训练已练完，目标达成！',
+                                    style: TextStyle(
+                                      color: Color(0xFF34D399),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
                                   Text(
-                                    '今日已打卡完毕，明天见',
-                                    style: TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold),
+                                    nextDay != null
+                                        ? '明日将轮转至：${nextDay.title}（第 ${((cycle.currentIndex + 1) % cycle.days.length) + 1} 天）'
+                                        : '已完成今日全部计划',
+                                    style: const TextStyle(
+                                      color: Color(0xFF94A3B8),
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          TextButton(
-                            onPressed: () => provider.undoToday(),
-                            child: const Text('撤销', style: TextStyle(color: Color(0xFF94A3B8))),
-                          ),
-                        ],
+                            TextButton(
+                              onPressed: () => provider.undoToday(),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text('撤销打卡', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -582,17 +611,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: day.isRest
-                                ? const Color(0xFF312E81)
-                                : const Color(0xFF064E3B),
+                            color: isCompleted
+                                ? const Color(0xFF064E3B)
+                                : (day.isRest ? const Color(0xFF312E81) : const Color(0xFF064E3B)),
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isCompleted
+                                  ? const Color(0xFF10B981).withValues(alpha: 0.6)
+                                  : Colors.transparent,
+                              width: 1,
+                            ),
                           ),
                           child: Text(
-                            '当前',
+                            isCompleted ? '今日已练完' : '当前',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: day.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF34D399),
+                              color: isCompleted
+                                  ? const Color(0xFF34D399)
+                                  : (day.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF34D399)),
                             ),
                           ),
                         )

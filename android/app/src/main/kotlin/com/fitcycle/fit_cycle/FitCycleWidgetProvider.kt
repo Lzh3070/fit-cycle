@@ -39,8 +39,12 @@ class FitCycleWidgetProvider : AppWidgetProvider() {
                 val daysTitles = widgetData.getString("days_titles", null)
                 val daysIsRest = widgetData.getString("days_is_rest", null)
 
+                val lastCompletedDate = widgetData.getString("last_completed_date", null)
+                val wasAnchorCompleted = lastCompletedDate == anchorDateStr
+
                 // 次日 0 点本地自动计算滚动推进（无需唤醒应用）
-                if (autoAdvance && anchorDateStr != null && cycleLength > 0 && daysTitles != null) {
+                val shouldAdvance = autoAdvance || wasAnchorCompleted
+                if (shouldAdvance && anchorDateStr != null && cycleLength > 0 && daysTitles != null) {
                     try {
                         val anchorDate = dateFormat.parse(anchorDateStr)
                         val todayDate = dateFormat.parse(todayStr)
@@ -50,7 +54,8 @@ class FitCycleWidgetProvider : AppWidgetProvider() {
                             if (diffDays > 0) {
                                 val titlesList = daysTitles.split(";;;")
                                 val isRestList = daysIsRest?.split(";;;") ?: emptyList()
-                                val curIdx = (anchorIndex + diffDays) % cycleLength
+                                val step = if (autoAdvance) diffDays else 1
+                                val curIdx = (anchorIndex + step) % cycleLength
                                 val nextIdx = (curIdx + 1) % cycleLength
 
                                 if (curIdx in titlesList.indices) {
@@ -75,12 +80,20 @@ class FitCycleWidgetProvider : AppWidgetProvider() {
                 setTextViewText(R.id.widget_next_day, nextDayText)
                 setTextViewText(R.id.widget_status, statusText)
 
-                if (isRest) {
-                    setTextViewText(R.id.widget_day_label, "恢复休整")
+                if (isCompleted) {
+                    val label = if (isRest) "恢复休整 · 今日已完成" else "今日训练 · 已练完"
+                    setTextViewText(R.id.widget_day_label, label)
+                    setTextColor(R.id.widget_day_label, android.graphics.Color.parseColor("#34D399"))
+                    setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_completed_badge_bg)
+                    setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#FFFFFF"))
+                } else if (isRest) {
+                    setTextViewText(R.id.widget_day_label, "今日状态 · 恢复休整")
+                    setTextColor(R.id.widget_day_label, android.graphics.Color.parseColor("#94A3B8"))
                     setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_rest_badge_bg)
                     setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#A5B4FC"))
                 } else {
-                    setTextViewText(R.id.widget_day_label, "今日训练")
+                    setTextViewText(R.id.widget_day_label, "今日训练目标")
+                    setTextColor(R.id.widget_day_label, android.graphics.Color.parseColor("#94A3B8"))
                     setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_badge_bg)
                     setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#34D399"))
                 }

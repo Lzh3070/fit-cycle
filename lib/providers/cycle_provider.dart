@@ -35,8 +35,8 @@ class CycleProvider extends ChangeNotifier {
       if (jsonStr != null && jsonStr.isNotEmpty) {
         _cycle = WorkoutCycle.fromJson(jsonStr);
 
-        // 次日 0 点自动轮转推进处理
-        if (_cycle != null && _cycle!.autoAdvance && _cycle!.days.isNotEmpty) {
+        // 次日 0 点自动轮转与打卡推进处理
+        if (_cycle != null && _cycle!.days.isNotEmpty) {
           final today = DateTime.now();
           final todayDateOnly = DateTime(today.year, today.month, today.day);
 
@@ -47,9 +47,21 @@ class CycleProvider extends ChangeNotifier {
               final deltaDays = todayDateOnly.difference(lastDateOnly).inDays;
 
               if (deltaDays > 0) {
-                _cycle!.currentIndex = (_cycle!.currentIndex + deltaDays) % _cycle!.days.length;
-                _cycle!.lastActiveDate = todayDateString;
-                await prefs.setString(_storageKey, _cycle!.toJson());
+                // 如果开启了自动轮转：按自然日差推进
+                // 如果未开启自动轮转但上次活跃日已打卡：推进 1 天到下一个待练日
+                // 否则（未打卡且未开启自动轮转）：稳定保留未练计划
+                if (_cycle!.autoAdvance) {
+                  _cycle!.currentIndex = (_cycle!.currentIndex + deltaDays) % _cycle!.days.length;
+                  _cycle!.lastActiveDate = todayDateString;
+                  await prefs.setString(_storageKey, _cycle!.toJson());
+                } else if (_cycle!.lastCompletedDate == _cycle!.lastActiveDate) {
+                  _cycle!.currentIndex = (_cycle!.currentIndex + 1) % _cycle!.days.length;
+                  _cycle!.lastActiveDate = todayDateString;
+                  await prefs.setString(_storageKey, _cycle!.toJson());
+                } else {
+                  _cycle!.lastActiveDate = todayDateString;
+                  await prefs.setString(_storageKey, _cycle!.toJson());
+                }
               }
             } catch (_) {
               _cycle!.lastActiveDate = todayDateString;
@@ -107,7 +119,8 @@ class CycleProvider extends ChangeNotifier {
     _cycle!.history.insert(0, record);
     _cycle!.lastCompletedDate = todayDateString;
     _cycle!.lastActiveDate = todayDateString;
-    _cycle!.currentIndex = (_cycle!.currentIndex + 1) % _cycle!.days.length;
+    // 打卡后今日依然保持今日计划（如 Day 1 A），状态变更为「已练完」
+    // 跨越午夜 0 点或次日进入时，系统将自动推进到 Day 2 B！
 
     await saveCycle(_cycle!);
   }
@@ -120,8 +133,6 @@ class CycleProvider extends ChangeNotifier {
     }
 
     _cycle!.lastCompletedDate = null;
-    _cycle!.currentIndex = (_cycle!.currentIndex - 1 + _cycle!.days.length) % _cycle!.days.length;
-
     await saveCycle(_cycle!);
   }
 
@@ -129,6 +140,7 @@ class CycleProvider extends ChangeNotifier {
     if (_cycle == null || index < 0 || index >= _cycle!.days.length) return;
     _cycle!.currentIndex = index;
     _cycle!.lastActiveDate = todayDateString;
+    _cycle!.lastCompletedDate = null;
     await saveCycle(_cycle!);
   }
 

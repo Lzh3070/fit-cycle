@@ -40,9 +40,10 @@ class WidgetService {
         await HomeWidget.saveWidgetData<bool>('is_rest', current?.isRest ?? false);
         await HomeWidget.saveWidgetData<bool>('is_completed', isCompleted);
 
-        // 存储次日 0 点本地自动计算所需锚点
+        // 存储次日 0 点本地自动计算所需锚点（支持顺延后锚点后移）
+        final anchorDate = cycle.lastActiveDate ?? todayStr;
         await HomeWidget.saveWidgetData<bool>('auto_advance', cycle.autoAdvance);
-        await HomeWidget.saveWidgetData<String>('anchor_date', todayStr);
+        await HomeWidget.saveWidgetData<String>('anchor_date', anchorDate);
         await HomeWidget.saveWidgetData<int>('anchor_index', cycle.currentIndex);
         await HomeWidget.saveWidgetData<int>('cycle_length', cycle.days.length);
         await HomeWidget.saveWidgetData<String>('days_titles', titlesJoined);

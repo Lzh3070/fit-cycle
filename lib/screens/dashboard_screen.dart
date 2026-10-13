@@ -299,7 +299,7 @@ class DashboardScreen extends StatelessWidget {
                           provider.postponeDay();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('⏳ 已顺延！循环进度已保留，明天继续当前训练。'),
+                              content: Text('⏳ 已顺延！今天的计划已推迟至明天，即使开启自动轮转，明天也仍会保留当前计划。'),
                               duration: Duration(seconds: 2),
                             ),
                           );

@@ -133,9 +133,11 @@ class CycleProvider extends ChangeNotifier {
   }
 
   Future<void> postponeDay() async {
-    // 顺延一天：不推进索引，仅仅刷新桌面小组件并保留当前训练给明天
+    // 顺延一天：将活跃基准日期后移 1 天（至明天）
+    // 这样明天 0 点即使开启了自动轮转，计算出的日差也是 0，会稳定保持今天的训练计划！
     if (_cycle != null) {
-      _cycle!.lastActiveDate = todayDateString;
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      _cycle!.lastActiveDate = DateFormat('yyyy-MM-dd').format(tomorrow);
       await saveCycle(_cycle!);
     } else {
       await WidgetService.updateWidget(_cycle);

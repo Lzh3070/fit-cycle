@@ -6,6 +6,10 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import android.graphics.Paint
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.StrikethroughSpan
 import es.antonborri.home_widget.HomeWidgetPlugin
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -75,27 +79,40 @@ class FitCycleWidgetProvider : AppWidgetProvider() {
                 }
 
                 setTextViewText(R.id.widget_cycle_name, cycleTitle)
-                setTextViewText(R.id.widget_day_title, dayTitle)
                 setTextViewText(R.id.widget_progress, progressText)
                 setTextViewText(R.id.widget_next_day, nextDayText)
                 setTextViewText(R.id.widget_status, statusText)
 
+                // 训练计划标题：已完成时将文字划掉（如“背和二头”）
                 if (isCompleted) {
-                    val label = if (isRest) "恢复休整 · 今日已完成" else "今日训练 · 已练完"
-                    setTextViewText(R.id.widget_day_label, label)
-                    setTextColor(R.id.widget_day_label, android.graphics.Color.parseColor("#34D399"))
-                    setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_completed_badge_bg)
-                    setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#FFFFFF"))
-                } else if (isRest) {
+                    val spannableTitle = SpannableString(dayTitle).apply {
+                        setSpan(StrikethroughSpan(), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+                    setTextViewText(R.id.widget_day_title, spannableTitle)
+                    setInt(R.id.widget_day_title, "setPaintFlags", Paint.STRIKE_THRU_TEXT_FLAG or Paint.ANTI_ALIAS_FLAG)
+                    setTextColor(R.id.widget_day_title, android.graphics.Color.parseColor("#94A3B8"))
+                } else {
+                    setTextViewText(R.id.widget_day_title, dayTitle)
+                    setInt(R.id.widget_day_title, "setPaintFlags", Paint.ANTI_ALIAS_FLAG)
+                    setTextColor(R.id.widget_day_title, android.graphics.Color.parseColor("#F8FAFC"))
+                }
+
+                // 顶部微标签：去掉“-已练完”，保持简洁干净
+                if (isRest) {
                     setTextViewText(R.id.widget_day_label, "今日状态 · 恢复休整")
                     setTextColor(R.id.widget_day_label, android.graphics.Color.parseColor("#94A3B8"))
-                    setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_rest_badge_bg)
-                    setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#A5B4FC"))
+                    setInt(R.id.widget_progress, "setBackgroundResource", if (isCompleted) R.drawable.widget_completed_badge_bg else R.drawable.widget_rest_badge_bg)
+                    setTextColor(R.id.widget_progress, android.graphics.Color.parseColor(if (isCompleted) "#FFFFFF" else "#A5B4FC"))
                 } else {
-                    setTextViewText(R.id.widget_day_label, "今日训练目标")
+                    setTextViewText(R.id.widget_day_label, "今日训练")
                     setTextColor(R.id.widget_day_label, android.graphics.Color.parseColor("#94A3B8"))
-                    setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_badge_bg)
-                    setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#34D399"))
+                    if (isCompleted) {
+                        setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_completed_badge_bg)
+                        setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#FFFFFF"))
+                    } else {
+                        setInt(R.id.widget_progress, "setBackgroundResource", R.drawable.widget_badge_bg)
+                        setTextColor(R.id.widget_progress, android.graphics.Color.parseColor("#34D399"))
+                    }
                 }
 
                 // 点击小组件启动主页面

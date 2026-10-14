@@ -5,6 +5,7 @@ import '../providers/cycle_provider.dart';
 import '../services/update_service.dart';
 import '../utils/app_toast.dart';
 import 'cycle_editor_screen.dart';
+import 'cycle_calendar_screen.dart';
 import 'history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -80,6 +81,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: Text(cycle.name),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined),
+            tooltip: '排期日历',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CycleCalendarScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history_outlined),
             tooltip: '打卡历史',
@@ -513,6 +523,165 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       child: const Text('休息', style: TextStyle(fontSize: 11, color: Color(0xFFA5B4FC))),
                     ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            // Upcoming Schedule Preview Strip (7-day preview)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF334155)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF38BDF8)),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            '近 7 天排期预览',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CycleCalendarScreen()),
+                          );
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Text(
+                              '查看完整日历',
+                              style: TextStyle(fontSize: 12, color: Color(0xFF38BDF8), fontWeight: FontWeight.w600),
+                            ),
+                            SizedBox(width: 2),
+                            Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF38BDF8)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: 7,
+                      separatorBuilder: (_, index) => const SizedBox(width: 8),
+                      itemBuilder: (context, i) {
+                        final date = DateTime.now().add(Duration(days: i));
+                        final isTodayItem = i == 0;
+                        final cycleIdx = (cycle.currentIndex + i) % cycle.days.length;
+                        final dayPlan = cycle.days[cycleIdx];
+                        final isItemRest = dayPlan.isRest;
+                        final isItemCompleted = isTodayItem && isCompleted;
+
+                        final weekdayStr = isTodayItem
+                            ? '今天'
+                            : (i == 1 ? '明天' : DateFormat('E', 'zh_CN').format(date));
+                        final dateStr = DateFormat('M/d').format(date);
+
+                        return InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CycleCalendarScreen(initialSelectedDate: date),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            width: 86,
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                            decoration: BoxDecoration(
+                              color: isTodayItem
+                                  ? (isItemRest ? const Color(0xFF312E81).withValues(alpha: 0.35) : const Color(0xFF064E3B).withValues(alpha: 0.35))
+                                  : const Color(0xFF0F172A).withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isTodayItem
+                                    ? (isItemRest ? const Color(0xFF6366F1) : const Color(0xFF10B981))
+                                    : const Color(0xFF334155).withValues(alpha: 0.6),
+                                width: isTodayItem ? 1.4 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      weekdayStr,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: isTodayItem ? FontWeight.bold : FontWeight.w500,
+                                        color: isTodayItem ? Colors.white : const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      dateStr,
+                                      style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isItemRest
+                                        ? const Color(0xFF312E81)
+                                        : const Color(0xFF064E3B),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    isItemRest ? '休息' : '第 ${cycleIdx + 1} 天',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isItemRest ? const Color(0xFFA5B4FC) : const Color(0xFF34D399),
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  dayPlan.title,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isTodayItem ? FontWeight.bold : FontWeight.w500,
+                                    color: isTodayItem ? Colors.white : const Color(0xFFCBD5E1),
+                                    decoration: isItemCompleted ? TextDecoration.lineThrough : null,
+                                    decorationColor: const Color(0xFF34D399),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

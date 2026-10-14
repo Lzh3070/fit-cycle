@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cycle_provider.dart';
 
+import 'cycle_calendar_screen.dart';
+
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
@@ -13,6 +15,17 @@ class HistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('打卡历史记录'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month_outlined),
+            tooltip: '排期日历',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CycleCalendarScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: history.isEmpty
           ? Center(

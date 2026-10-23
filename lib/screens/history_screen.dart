@@ -14,7 +14,7 @@ class HistoryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('打卡历史记录'),
+        title: const Text('打卡历史'),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month_outlined),
@@ -36,12 +36,7 @@ class HistoryScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text(
                     '暂无打卡记录',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '在首页完成今日训练后点击打卡即可记录',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 15, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -96,7 +91,7 @@ class HistoryScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              record.isRest ? '休息恢复' : '第 ${record.dayIndex + 1} 天训练',
+                              record.isRest ? '休息' : '第 ${record.dayIndex + 1} 天',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade400,

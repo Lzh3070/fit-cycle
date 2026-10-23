@@ -250,8 +250,8 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
+                      children: const [
+                        Text(
                           '次日 0 点自动轮转',
                           style: TextStyle(
                             fontSize: 15,
@@ -259,12 +259,10 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
-                          _autoAdvance
-                              ? '开启：即使忘点打卡，第二天也会自动推进'
-                              : '关闭：必须手动打卡才会推进到下一天',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          '每日凌晨自动推进至下一天计划',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                         ),
                       ],
                     ),
@@ -300,11 +298,11 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                       Icon(Icons.auto_awesome, size: 16, color: Color(0xFF38BDF8)),
                       SizedBox(width: 6),
                       Text(
-                        '快速参考模版（可选填入并自行修改）：',
+                        '参考模版',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: Color(0xFF94A3B8),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -315,7 +313,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                     runSpacing: 8,
                     children: [
                       ActionChip(
-                        label: const Text('4天循环 (背二/肩腿/胸三/休)'),
+                        label: const Text('经典四分化 · 4天'),
                         backgroundColor: const Color(0xFF1E293B),
                         labelStyle: const TextStyle(fontSize: 12, color: Color(0xFFE2E8F0)),
                         onPressed: () => _applyTemplate('经典四分化', [
@@ -326,7 +324,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                         ]),
                       ),
                       ActionChip(
-                        label: const Text('3天循环 (推/拉/腿)'),
+                        label: const Text('PPL 三分化 · 3天'),
                         backgroundColor: const Color(0xFF1E293B),
                         labelStyle: const TextStyle(fontSize: 12, color: Color(0xFFE2E8F0)),
                         onPressed: () => _applyTemplate('PPL 三分化', [
@@ -336,7 +334,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                         ]),
                       ),
                       ActionChip(
-                        label: const Text('5天循环 (胸/背/肩/腿/手/休)'),
+                        label: const Text('经典五分化 · 5天'),
                         backgroundColor: const Color(0xFF1E293B),
                         labelStyle: const TextStyle(fontSize: 12, color: Color(0xFFE2E8F0)),
                         onPressed: () => _applyTemplate('经典五分化', [
@@ -360,7 +358,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '循环天数序列 (${_dayDrafts.length} 天)',
+                  '循环序列 (${_dayDrafts.length} 天)',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -401,12 +399,12 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
                             color: draft.isRest
                                 ? const Color(0xFF4338CA)
                                 : const Color(0xFF0284C7),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             '第 ${index + 1} 天',
@@ -417,17 +415,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            draft.isRest ? '恢复休息日' : '训练日',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: draft.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF94A3B8),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                        const Spacer(),
                         // Rest switch
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -436,7 +424,8 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                               '休息日',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: draft.isRest ? Colors.white : const Color(0xFF94A3B8),
+                                color: draft.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF94A3B8),
+                                fontWeight: draft.isRest ? FontWeight.w600 : FontWeight.normal,
                               ),
                             ),
                             Switch(
@@ -456,7 +445,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                         IconButton(
                           icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 20),
                           onPressed: () => _removeDay(index),
-                          tooltip: '删除此天',
+                          tooltip: '删除',
                         ),
                       ],
                     ),
@@ -469,7 +458,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                         color: Colors.white,
                       ),
                       decoration: InputDecoration(
-                        labelText: '训练内容 / 部位名称',
+                        labelText: '训练部位',
                         hintText: draft.isRest ? '例如：休息恢复、主动拉伸' : '例如：背部 + 二头肌',
                         hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
                         filled: true,
@@ -486,7 +475,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                       controller: draft.notesController,
                       style: const TextStyle(fontSize: 13, color: Color(0xFFE2E8F0)),
                       decoration: InputDecoration(
-                        labelText: '动作备忘 / 备注（选填）',
+                        labelText: '动作备注 (选填)',
                         hintText: draft.isRest ? '例如：散步30分钟、补充睡眠' : '例如：高位下拉、划船、杠铃弯举',
                         hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
                         filled: true,
@@ -508,7 +497,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
             OutlinedButton.icon(
               onPressed: _addDay,
               icon: const Icon(Icons.add, color: Color(0xFF38BDF8)),
-              label: const Text('添加下一天训练', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 15)),
+              label: const Text('添加训练日', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 15)),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 side: const BorderSide(color: Color(0xFF38BDF8), width: 1.5),
@@ -530,7 +519,7 @@ class _CycleEditorScreenState extends State<CycleEditorScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    widget.isInitialSetup ? '完成设置 · 开启循环' : '保存修改计划',
+                    widget.isInitialSetup ? '开启循环' : '保存计划',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,

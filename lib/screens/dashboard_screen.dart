@@ -29,6 +29,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final provider = context.watch<CycleProvider>();
     final cycle = provider.cycle;
 
+    if (provider.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF10B981)),
+        ),
+      );
+    }
+
     if (cycle == null || cycle.days.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('练啥 · FitCycle')),
@@ -38,15 +46,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.fitness_center_outlined, size: 72, color: Color(0xFF38BDF8)),
-                const SizedBox(height: 20),
+                const Icon(Icons.fitness_center_outlined, size: 72, color: Color(0xFF10B981)),
+                const SizedBox(height: 16),
                 const Text(
-                  '还没有配置训练循环',
+                  '未设置训练循环',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '自由设置你的分化轮转天数与部位，完全由你定义',
+                  '设定滚动循环，开始记录',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
                 ),
@@ -73,7 +81,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final currentDay = cycle.currentDay!;
-    final nextDay = cycle.nextDay;
     final isCompleted = provider.isTodayCompleted;
     final formattedDate = DateFormat('yyyy年M月d日 EEEE', 'zh_CN').format(DateTime.now());
 
@@ -150,7 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
-            // Date Header
+            // Date Header & Auto-Advance Indicator
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -168,7 +175,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () {
                     final nextVal = !cycle.autoAdvance;
                     provider.toggleAutoAdvance(nextVal);
-                    AppToast.info(context, nextVal ? '已开启「次日 0 点自动轮转」' : '已切换为「手动打卡轮转」');
+                    AppToast.info(context, nextVal ? '已开启次日自动轮转' : '已切换为手动打卡推进');
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -190,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          cycle.autoAdvance ? '次日自动轮转' : '手动打卡推进',
+                          cycle.autoAdvance ? '自动轮转' : '手动推进',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -206,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 12),
 
-            // HERO CARD: Today's Focus (Double-Bezel Architecture)
+            // HERO CARD: Today's Focus
             Container(
               padding: const EdgeInsets.all(2.5),
               decoration: BoxDecoration(
@@ -251,95 +258,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: currentDay.isRest ? const Color(0xFF4338CA) : const Color(0xFF059669),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '第 ${cycle.currentIndex + 1} / ${cycle.days.length} 天',
+                            currentDay.isRest ? '休息' : 'Day ${cycle.currentIndex + 1}/${cycle.days.length}',
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isCompleted
-                                ? const Color(0xFF10B981).withValues(alpha: 0.2)
-                                : Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isCompleted ? const Color(0xFF10B981) : Colors.white12,
-                              width: 1,
+                        if (isCompleted)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4), width: 1),
                             ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                                size: 14,
-                                color: isCompleted ? const Color(0xFF34D399) : const Color(0xFF94A3B8),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                isCompleted ? '今日已练完' : '待完成',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isCompleted ? const Color(0xFF34D399) : const Color(0xFF94A3B8),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_rounded, size: 13, color: Color(0xFF34D399)),
+                                SizedBox(width: 4),
+                                Text(
+                                  '已完成',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF34D399),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: (currentDay.isRest ? const Color(0xFF818CF8) : const Color(0xFF34D399)).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: (currentDay.isRest ? const Color(0xFF818CF8) : const Color(0xFF34D399)).withValues(alpha: 0.25),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            currentDay.isRest
-                                ? 'REST & RECOVERY'
-                                : (isCompleted ? 'COMPLETED · 今日已练完' : 'TODAY\'S TARGET'),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.2,
-                              color: currentDay.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF34D399),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          currentDay.isRest
-                              ? '恢复休整'
-                              : (isCompleted ? '已达成' : '重点强化'),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: currentDay.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF94A3B8),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       currentDay.title,
-                      style: const TextStyle(
-                        fontSize: 30,
+                      style: TextStyle(
+                        fontSize: 32,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                         letterSpacing: -0.5,
+                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                        decorationColor: const Color(0xFF34D399),
+                        decorationThickness: 2.5,
                       ),
                     ),
 
@@ -355,109 +319,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // Action Buttons with Nested Island Architecture
-                    if (!isCompleted) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            provider.completeToday();
-                            AppToast.success(context, '今日打卡成功！已记录完成');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            elevation: 4,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '完成今日打卡',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    // Actions
+                    if (!isCompleted)
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                provider.completeToday();
+                                AppToast.success(context, '今日已打卡');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 0,
                               ),
-                              const SizedBox(width: 12),
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            provider.postponeDay();
-                            AppToast.warning(context, '已顺延！今天的计划已推迟至明天');
-                          },
-                          icon: const Icon(Icons.schedule_rounded, color: Color(0xFF94A3B8), size: 18),
-                          label: const Text(
-                            '顺延一天 (今日未练 · 计划后移)',
-                            style: TextStyle(fontSize: 14, color: Color(0xFFCBD5E1)),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF334155)),
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          ),
-                        ),
-                      ),
-                    ] else ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.28),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(7),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withValues(alpha: 0.22),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.check_rounded, size: 18, color: Color(0xFF34D399)),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text(
-                                    '今日训练已练完，目标达成！',
-                                    style: TextStyle(
-                                      color: Color(0xFF34D399),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
+                                  Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                                  SizedBox(width: 8),
                                   Text(
-                                    nextDay != null
-                                        ? '明日将轮转至：${nextDay.title}（第 ${((cycle.currentIndex + 1) % cycle.days.length) + 1} 天）'
-                                        : '已完成今日全部计划',
-                                    style: const TextStyle(
-                                      color: Color(0xFF94A3B8),
-                                      fontSize: 12,
-                                    ),
+                                    '完成打卡',
+                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                provider.postponeDay();
+                                AppToast.warning(context, '计划已顺延');
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF334155)),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              child: const Text(
+                                '顺延一天',
+                                style: TextStyle(fontSize: 14, color: Color(0xFFCBD5E1), fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF064E3B),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.check_rounded, size: 14, color: Color(0xFF34D399)),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '今日已完成',
+                                  style: TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                              ],
                             ),
                             TextButton(
                               onPressed: () => provider.undoToday(),
@@ -466,12 +402,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              child: const Text('撤销打卡', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                              child: const Text('撤销', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
                             ),
                           ],
                         ),
                       ),
-                    ],
                   ],
                 ),
               ),
@@ -479,57 +414,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 18),
 
-            // Next Day Preview Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFF334155)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF0F172A),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.arrow_forward_rounded, color: Color(0xFF38BDF8), size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '明天轮转预告',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          nextDay != null ? nextDay.title : '循环结束',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (nextDay?.isRest ?? false)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF312E81),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text('休息', style: TextStyle(fontSize: 11, color: Color(0xFFA5B4FC))),
-                    ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            // Upcoming Schedule Preview Strip (7-day preview)
+            // Schedule Preview Strip (Replaces redundant standalone next-day card)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -551,11 +436,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               color: const Color(0xFF0F172A),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF38BDF8)),
+                            child: const Icon(Icons.calendar_today_outlined, size: 15, color: Color(0xFF38BDF8)),
                           ),
                           const SizedBox(width: 8),
                           const Text(
-                            '近 7 天排期预览',
+                            '排期预览',
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
@@ -570,7 +455,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: const [
                             Text(
-                              '查看完整日历',
+                              '查看日历',
                               style: TextStyle(fontSize: 12, color: Color(0xFF38BDF8), fontWeight: FontWeight.w600),
                             ),
                             SizedBox(width: 2),
@@ -582,7 +467,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
-                    height: 100,
+                    height: 96,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: 7,
@@ -654,7 +539,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    isItemRest ? '休息' : '第 ${cycleIdx + 1} 天',
+                                    isItemRest ? '休' : 'Day ${cycleIdx + 1}',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -686,18 +571,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 20),
 
-            // Full Cycle Sequence Track
+            // Cycle Sequence Track
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  '完整循环序列',
+                  '循环序列',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 Text(
-                  '共 ${cycle.days.length} 天一轮',
+                  '${cycle.days.length} 天',
                   style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                 ),
               ],
@@ -792,7 +677,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           child: Text(
-                            isCompleted ? '今日已练完' : '当前',
+                            isCompleted ? '已完成' : '当前',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -803,9 +688,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         )
                       else if (day.isRest)
-                        const Text(
-                          '休息日',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF312E81).withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            '休',
+                            style: TextStyle(fontSize: 10, color: Color(0xFFA5B4FC), fontWeight: FontWeight.bold),
+                          ),
                         ),
                     ],
                   ),
@@ -813,139 +705,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             }),
 
-            const SizedBox(height: 20),
-
-            // Desktop Widget Instructions Card (Double-Bezel & Step Capsules)
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.4)),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.widgets_outlined, color: Color(0xFF38BDF8), size: 16),
-                        ),
-                        const SizedBox(width: 10),
-                        const Text(
-                          '桌面 2×1 小组件使用指引',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text(
-                            'WIDGET',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.0,
-                              color: Color(0xFF94A3B8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      '无需频繁打开应用，在手机桌面即可抬手扫视今日训练目标与循环进度：',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), height: 1.4),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.6)),
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('STEP 1', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8))),
-                                SizedBox(height: 2),
-                                Text('长按桌面空白', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF475569)),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.6)),
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('STEP 2', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8))),
-                                SizedBox(height: 2),
-                                Text('选择小组件', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF475569)),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.6)),
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('STEP 3', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
-                                SizedBox(height: 2),
-                                Text('拖放「练啥」', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -1003,7 +763,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                '专为健身爱好者打造的滚动分化（Rolling Split）极简看板',
+                '专为健力打造的滚动分化循环看板',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Color(0xFFCBD5E1)),
               ),

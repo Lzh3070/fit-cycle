@@ -230,7 +230,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: const Text('排期日历预览', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('排期日历', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           TextButton(
             onPressed: _jumpToToday,
@@ -245,7 +245,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
               ),
-              child: const Text('回到今天', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              child: const Text('今天', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(width: 8),
@@ -282,44 +282,15 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF10B981),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '训练 $monthWorkouts 天',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF6366F1),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '休息 $monthRests 天',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                        ),
-                        if (monthCompleted > 0) ...[
-                          const SizedBox(width: 8),
-                          Text(
-                            '· 已打卡 $monthCompleted 次',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF34D399), fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      monthCompleted > 0
+                          ? '$monthWorkouts 训练 · $monthRests 休息 · $monthCompleted 已打卡'
+                          : '$monthWorkouts 训练 · $monthRests 休息',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -429,16 +400,16 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Tags Row
+                  // Top Status & Date Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: (selectedDayInfo.isRest ? const Color(0xFF818CF8) : const Color(0xFF34D399))
                               .withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: (selectedDayInfo.isRest ? const Color(0xFF818CF8) : const Color(0xFF34D399))
                                 .withValues(alpha: 0.3),
@@ -446,83 +417,47 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                         ),
                         child: Text(
                           selectedDayInfo.isToday
-                              ? 'TODAY · 今日计划'
-                              : (selectedDayInfo.isPast
-                                  ? (selectedDayInfo.isCompleted ? 'COMPLETED · 已打卡' : 'RECORD · 历史记录')
-                                  : 'SCHEDULED · 循环排期'),
+                              ? (selectedDayInfo.isCompleted ? '今日 · 已打卡' : '今日')
+                              : (selectedDayInfo.cycleIndex != null && cycle != null
+                                  ? (selectedDayInfo.isRest ? '休息' : 'Day ${selectedDayInfo.cycleIndex! + 1}/${cycle.days.length}')
+                                  : (selectedDayInfo.isRest ? '休息' : '训练')),
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 1.1,
                             color: selectedDayInfo.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF34D399),
                           ),
                         ),
                       ),
                       Text(
-                        DateFormat('yyyy年M月d日 EEEE', 'zh_CN').format(selectedDayInfo.date),
+                        DateFormat('M月d日 EEEE', 'zh_CN').format(selectedDayInfo.date),
                         style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
-                  // Title & Rest Badge
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedDayInfo.title,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: -0.3,
-                            decoration: (selectedDayInfo.isToday && selectedDayInfo.isCompleted)
-                                ? TextDecoration.lineThrough
-                                : null,
-                            decorationColor: const Color(0xFF34D399),
-                            decorationThickness: 2,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: selectedDayInfo.isRest
-                              ? const Color(0xFF312E81)
-                              : const Color(0xFF064E3B),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: selectedDayInfo.isRest ? const Color(0xFF6366F1) : const Color(0xFF10B981),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          selectedDayInfo.isRest ? '恢复休整' : '强化训练',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: selectedDayInfo.isRest ? const Color(0xFFA5B4FC) : const Color(0xFF34D399),
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Title
+                  Text(
+                    selectedDayInfo.title,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                      decoration: (selectedDayInfo.isToday && selectedDayInfo.isCompleted)
+                          ? TextDecoration.lineThrough
+                          : null,
+                      decorationColor: const Color(0xFF34D399),
+                      decorationThickness: 2,
+                    ),
                   ),
 
-                  if (selectedDayInfo.cycleIndex != null && cycle != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      '属于当前循环第 ${(selectedDayInfo.cycleIndex! + 1)} / ${cycle.days.length} 天',
-                      style: const TextStyle(fontSize: 13, color: Color(0xFFCBD5E1)),
-                    ),
-                  ],
-
                   if (selectedDayInfo.notes.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(10),
@@ -530,57 +465,33 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                       ),
                       child: Text(
                         selectedDayInfo.notes,
-                        style: const TextStyle(fontSize: 13, color: Color(0xFFE2E8F0), height: 1.4),
+                        style: const TextStyle(fontSize: 13, color: Color(0xFFCBD5E1), height: 1.4),
                       ),
                     ),
                   ],
 
-                  // Action or Info Note
-                  const SizedBox(height: 14),
-                  if (selectedDayInfo.isToday) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selectedDayInfo.isCompleted
-                            ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                            : Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            selectedDayInfo.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-                            size: 16,
-                            color: selectedDayInfo.isCompleted ? const Color(0xFF34D399) : const Color(0xFF94A3B8),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            selectedDayInfo.isCompleted ? '今日目标已打卡达成' : '今日计划待打卡完成',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: selectedDayInfo.isCompleted ? const Color(0xFF34D399) : const Color(0xFF94A3B8),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                  if (selectedDayInfo.isToday && selectedDayInfo.isCompleted) ...[
+                    const SizedBox(height: 12),
+                    const Row(
+                      children: [
+                        Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF34D399)),
+                        SizedBox(width: 6),
+                        Text('今日已打卡', style: TextStyle(fontSize: 12, color: Color(0xFF34D399), fontWeight: FontWeight.w600)),
+                      ],
                     ),
                   ] else if (selectedDayInfo.isFuture && selectedDayInfo.cycleIndex != null) ...[
+                    const SizedBox(height: 14),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const Text(
-                          '系统根据当前滚动循环推算该日安排',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                        ),
                         OutlinedButton(
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 backgroundColor: const Color(0xFF1E293B),
-                                title: Text('切换循环到「${selectedDayInfo.title}」？'),
-                                content: Text('确认将今日计划直接切换到第 ${(selectedDayInfo.cycleIndex! + 1)} 天吗？'),
+                                title: Text('切换至「${selectedDayInfo.title}」？'),
+                                content: Text('将今日计划切换为第 ${(selectedDayInfo.cycleIndex! + 1)} 天'),
                                 actions: [
                                   TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
                                   ElevatedButton(
@@ -590,7 +501,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                                       Navigator.pop(ctx);
                                       AppToast.success(context, '已将今日计划切换为「${selectedDayInfo.title}」');
                                     },
-                                    child: const Text('确认切换', style: TextStyle(color: Colors.white)),
+                                    child: const Text('确认', style: TextStyle(color: Colors.white)),
                                   ),
                                 ],
                               ),
@@ -598,20 +509,22 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                           },
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: Color(0xFF475569)),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('设为今日计划', style: TextStyle(fontSize: 12, color: Color(0xFFCBD5E1))),
+                          child: const Text('设为今日', style: TextStyle(fontSize: 12, color: Color(0xFFCBD5E1), fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),
                   ] else if (selectedDayInfo.isPast) ...[
+                    const SizedBox(height: 10),
                     Text(
-                      selectedDayInfo.isCompleted ? '该日已按计划完成打卡' : '该日未记录打卡',
+                      selectedDayInfo.isCompleted ? '已打卡' : '未打卡',
                       style: TextStyle(
                         fontSize: 12,
                         color: selectedDayInfo.isCompleted ? const Color(0xFF34D399) : const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
